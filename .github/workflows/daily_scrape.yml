@@ -1,0 +1,45 @@
+name: Daily Google Play Scraper
+
+on:
+  schedule:
+    # Runs at 03:30 UTC daily (which is 9:00 AM IST)
+    - cron: '30 3 * * *'
+  
+  # Allows manual testing button
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout your repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. Setup Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # 3. Install required libraries
+      - name: Install Dependencies
+        run: |
+          pip install google-play-scraper gspread google-auth
+
+      # 4. Create the JSON key file from your GitHub Secret
+      - name: Create Service Account JSON
+        id: create-json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "service_account.json"
+          json: ${{ secrets.GOOGLE_SA_JSON }}
+
+      # 5. Run your script
+      - name: Run Python Script
+        env:
+          # Points your script to the file created in Step 4
+          GOOGLE_APPLICATION_CREDENTIALS: ./service_account.json
+        # NOTE: Quotes are required because your filename has spaces
+        run: python "final gr.py"
